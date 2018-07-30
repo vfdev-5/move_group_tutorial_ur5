@@ -1,0 +1,6 @@
+<launch>
+
+  <!-- <node name="move_group_tutorial_ur5" pkg="move_group_tutorial_ur5" type="move_group_tutorial_ur5.py" respawn="false" output="screen">
+  </node> -->
+
+</launch>
