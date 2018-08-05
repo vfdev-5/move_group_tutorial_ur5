@@ -132,6 +132,9 @@ class MoveGroupTutorial(object):
     # reason not to.
     group = self.group
 
+    current_pose = group.get_current_pose().pose
+    print("Current pose: ", current_pose)
+
     # We can plan a motion for this group to a desired pose for the end-effector:
     pose_goal = geometry_msgs.msg.Pose()
     pose_goal.orientation.w = 1.0
@@ -148,6 +151,9 @@ class MoveGroupTutorial(object):
     # Note: there is no equivalent function for clear_joint_value_targets()
     group.clear_pose_targets()
 
+    current_pose = group.get_current_pose().pose
+    print("New current pose: ", current_pose)
+
     # For testing:
     # Note that since this section of code will not be included in the tutorials
     # we use the class variable rather than the copied state variable
@@ -161,24 +167,24 @@ class MoveGroupTutorial(object):
     # reason not to.
     group = self.group
 
-    ## BEGIN_SUB_TUTORIAL plan_cartesian_path
-    ##
-    ## Cartesian Paths
-    ## ^^^^^^^^^^^^^^^
-    ## You can plan a Cartesian path directly by specifying a list of waypoints
-    ## for the end-effector to go through:
-    ##
+    current_pose = group.get_current_pose().pose
+    print("Current pose: ", current_pose)
+
+    # Cartesian Paths
+    # You can plan a Cartesian path directly by specifying a list of waypoints
+    # for the end-effector to go through:
     waypoints = []
 
     wpose = group.get_current_pose().pose
-    wpose.position.z -= scale * 0.1  # First move up (z)
-    wpose.position.y += scale * 0.2  # and sideways (y)
+    wpose.position.x = 0.2  
+    wpose.position.y = 0.01
+    wpose.position.z = 0.2
     waypoints.append(copy.deepcopy(wpose))
 
-    wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
+    wpose.position.y += 0.1
     waypoints.append(copy.deepcopy(wpose))
 
-    wpose.position.y -= scale * 0.1  # Third move sideways (y)
+    wpose.position.y -= 0.2
     waypoints.append(copy.deepcopy(wpose))
 
     # We want the Cartesian path to be interpolated at a resolution of 1 cm
@@ -192,8 +198,6 @@ class MoveGroupTutorial(object):
     # Note: We are just planning, not asking move_group to actually move the robot yet:
     return plan, fraction
 
-    ## END_SUB_TUTORIAL
-
   def display_trajectory(self, plan):
     # Copy class variables to local variables to make the web tutorials more clear.
     # In practice, you should use the class variables directly unless you have a good
@@ -201,24 +205,19 @@ class MoveGroupTutorial(object):
     robot = self.robot
     display_trajectory_publisher = self.display_trajectory_publisher
 
-    ## BEGIN_SUB_TUTORIAL display_trajectory
-    ##
-    ## Displaying a Trajectory
-    ## ^^^^^^^^^^^^^^^^^^^^^^^
-    ## You can ask RViz to visualize a plan (aka trajectory) for you. But the
-    ## group.plan() method does this automatically so this is not that useful
-    ## here (it just displays the same trajectory again):
-    ##
-    ## A `DisplayTrajectory`_ msg has two primary fields, trajectory_start and trajectory.
-    ## We populate the trajectory_start with our current robot state to copy over
-    ## any AttachedCollisionObjects and add our plan to the trajectory.
+    # Displaying a Trajectory
+    # You can ask RViz to visualize a plan (aka trajectory) for you. But the
+    # group.plan() method does this automatically so this is not that useful
+    # here (it just displays the same trajectory again):
+    #
+    # A `DisplayTrajectory`_ msg has two primary fields, trajectory_start and trajectory.
+    # We populate the trajectory_start with our current robot state to copy over
+    # any AttachedCollisionObjects and add our plan to the trajectory.
     display_trajectory = moveit_msgs.msg.DisplayTrajectory()
     display_trajectory.trajectory_start = robot.get_current_state()
     display_trajectory.trajectory.append(plan)
     # Publish
     display_trajectory_publisher.publish(display_trajectory);
-
-    ## END_SUB_TUTORIAL
 
   def execute_plan(self, plan):
     # Copy class variables to local variables to make the web tutorials more clear.
@@ -226,17 +225,13 @@ class MoveGroupTutorial(object):
     # reason not to.
     group = self.group
 
-    ## BEGIN_SUB_TUTORIAL execute_plan
-    ##
-    ## Executing a Plan
-    ## ^^^^^^^^^^^^^^^^
-    ## Use execute if you would like the robot to follow
-    ## the plan that has already been computed:
+    # Executing a Plan
+    # Use execute if you would like the robot to follow
+    # the plan that has already been computed:
     group.execute(plan, wait=True)
 
-    ## **Note:** The robot's current joint state must be within some tolerance of the
-    ## first waypoint in the `RobotTrajectory`_ or ``execute()`` will fail
-    ## END_SUB_TUTORIAL
+    # **Note:** The robot's current joint state must be within some tolerance of the
+    # first waypoint in the `RobotTrajectory`_ or ``execute()`` will fail
 
   def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
     # Copy class variables to local variables to make the web tutorials more clear.
@@ -386,17 +381,21 @@ def main():
     raw_input()
     tutorial.go_to_pose_goal()
 
-    # print "============ Press `Enter` to plan and display a Cartesian path ..."
-    # raw_input()
-    # cartesian_plan, fraction = tutorial.plan_cartesian_path()
+    print "============ Press `Enter` to execute go to up state ..."
+    raw_input()
+    tutorial.go_to_up_state()
 
-    # print "============ Press `Enter` to display a saved trajectory (this will replay the Cartesian path)  ..."
-    # raw_input()
-    # tutorial.display_trajectory(cartesian_plan)
+    print "============ Press `Enter` to plan and display a Cartesian path ..."
+    raw_input()
+    cartesian_plan, fraction = tutorial.plan_cartesian_path()
 
-    # print "============ Press `Enter` to execute a saved path ..."
-    # raw_input()
-    # tutorial.execute_plan(cartesian_plan)
+    print "============ Press `Enter` to display a saved trajectory (this will replay the Cartesian path)  ..."
+    raw_input()
+    tutorial.display_trajectory(cartesian_plan)
+
+    print "============ Press `Enter` to execute a saved path ..."
+    raw_input()
+    tutorial.execute_plan(cartesian_plan)
 
     # print "============ Press `Enter` to add a box to the planning scene ..."
     # raw_input()
@@ -427,42 +426,6 @@ def main():
 
 if __name__ == '__main__':
   main()
-
-## BEGIN_TUTORIAL
-## .. _moveit_commander:
-##    http://docs.ros.org/kinetic/api/moveit_commander/html/namespacemoveit__commander.html
-##
-## .. _MoveGroupCommander:
-##    http://docs.ros.org/kinetic/api/moveit_commander/html/classmoveit__commander_1_1move__group_1_1MoveGroupCommander.html
-##
-## .. _RobotCommander:
-##    http://docs.ros.org/kinetic/api/moveit_commander/html/classmoveit__commander_1_1robot_1_1RobotCommander.html
-##
-## .. _PlanningSceneInterface:
-##    http://docs.ros.org/kinetic/api/moveit_commander/html/classmoveit__commander_1_1planning__scene__interface_1_1PlanningSceneInterface.html
-##
-## .. _DisplayTrajectory:
-##    http://docs.ros.org/kinetic/api/moveit_msgs/html/msg/DisplayTrajectory.html
-##
-## .. _RobotTrajectory:
-##    http://docs.ros.org/kinetic/api/moveit_msgs/html/msg/RobotTrajectory.html
-##
-## .. _rospy:
-##    http://docs.ros.org/kinetic/api/rospy/html/
-## CALL_SUB_TUTORIAL imports
-## CALL_SUB_TUTORIAL setup
-## CALL_SUB_TUTORIAL basic_info
-## CALL_SUB_TUTORIAL plan_to_joint_state
-## CALL_SUB_TUTORIAL plan_to_pose
-## CALL_SUB_TUTORIAL plan_cartesian_path
-## CALL_SUB_TUTORIAL display_trajectory
-## CALL_SUB_TUTORIAL execute_plan
-## CALL_SUB_TUTORIAL add_box
-## CALL_SUB_TUTORIAL wait_for_scene_update
-## CALL_SUB_TUTORIAL attach_object
-## CALL_SUB_TUTORIAL detach_object
-## CALL_SUB_TUTORIAL remove_object
-## END_TUTORIAL
 
 
 
