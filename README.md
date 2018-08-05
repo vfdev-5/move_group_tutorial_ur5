@@ -7,7 +7,7 @@ Adaptation of [MoveIt! MoveGroup tutorial for Panda](https://github.com/ros-plan
 We need to use fixed URDF/SRDF universal_robotics package (see [here](https://github.com/ros-industrial/universal_robot/pull/284)).
 Thus, we use a custom `universal_robot` repository.
 
-```
+``` 
 mkdir -p ur5_ws/src && cd ur5_ws/src
 git clone https://github.com/vfdev-5/universal_robot
 git clone https://github.com/vfdev-5/move_group_tutorial_ur5.git
@@ -23,7 +23,6 @@ Install other dependencies:
 ```
 cd ur5_ws/ && rosdep install --from-paths src --ignore-src -r -y
 ```
-
 
 ## Usage:
 
